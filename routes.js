@@ -20,11 +20,85 @@ module.exports = { // Permite hacer futuros imports
         repositorio = server.methods.getRepositorio();
         server.route([
             {
+                method: 'GET',
+                path: '/misanuncios',
+                options: {
+                    auth: 'auth-registrado'
+                },
+                handler: async (req, h) => {
+                    // The search criteria in mongodb relies on the credentials travelling with the cookie
+                    // When we crate an add, we make the creator the user stored in the cookie
+                    var criterio = { "usuario" : req.auth.credentials };
+                    // cookieAuth
+                    await repositorio.conexion()
+                        .then((db) => repositorio.obtenerAnuncios(db, criterio))
+                        .then((anuncios) => {
+                            anunciosEjemplo = anuncios;
+                        })
+
+                    return h.view('anuncios',
+                        { anuncios: anunciosEjemplo },
+                        { layout: 'base'} );
+                }
+            },
+            {
+                method: 'GET',
+                path: '/desconectarse',
+                handler: async (req, h) => {
+                    req.cookieAuth.set({ usuario: "", secreto: "" });
+                    return h.view('login',
+                        { },
+                        { layout: 'base'});
+                }
+            },
+            {
+                method: 'POST',
+                path: '/login',
+                handler: async (req, h) => {
+                    password = require('crypto').createHmac('sha256', server.methods.getSecret())
+                        .update(req.payload.password).digest('hex');
+                    // We build a user with the data provided in the post request
+                    usuarioABuscar = {
+                        usuario: req.payload.usuario,
+                        password: password,
+                    }
+                    // await no continuar hasta acabar esto
+                    // Buscar en usuarios con el usuario a buscar como criterio
+                    await repositorio.conexion()
+                        .then((db) => repositorio.obtenerUsuarios(db, usuarioABuscar))
+                        .then((usuarios) => {
+                            respuesta = "";
+                            if (usuarios == null || usuarios.length == 0 ) {
+                                respuesta =  "No identificado"
+                            } else {
+                                // On correct authentication
+                                req.cookieAuth.set({
+                                    usuario: usuarios[0].usuario,
+                                    secreto : "secreto"
+                                });
+
+                                respuesta = "Identificado correctamente";
+                            }
+                        })
+
+                    return respuesta;
+                }
+            },
+            {
+                method: 'GET',
+                path: '/login',
+                handler: async (req, h) => {
+                    return h.view('login',
+                        { },
+                        { layout: 'base'});
+                }
+            },
+            {
                 method: 'POST',
                 path: '/registro',
                 handler: async (req, h) => {
                     // We should use a better secret key
-                    password = require('crypto').createHmac('sha256', 'secreto')
+                    password = require('crypto').createHmac('sha256', server.methods.getSecret())
                         .update(req.payload.password).digest('hex');
 
                     usuario = {
@@ -61,6 +135,7 @@ module.exports = { // Permite hacer futuros imports
                 path: '/publicar',
                 // Options of the handlers, we specify
                 options : {
+                    auth: 'auth-registrado',
                     payload: {
                         output: 'stream'
                     }
@@ -68,7 +143,7 @@ module.exports = { // Permite hacer futuros imports
                 handler: async (req, h) => {
                     // Parse form data
                     anuncio = {
-                        usuario: "sin usuario",
+                        usuario: req.auth.credentials ,
                         titulo: req.payload.titulo,
                         descripcion: req.payload.descripcion,
                         categoria: req.payload.categoria,
@@ -103,6 +178,9 @@ module.exports = { // Permite hacer futuros imports
             {
                 method: 'GET',
                 path: '/publicar',
+                options: {
+                    auth: 'auth-registrado'
+                },
                 handler: async (req, h) => {
                     return h.view('publicar',
                         { usuario: 'ragna'},

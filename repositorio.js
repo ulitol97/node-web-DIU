@@ -29,6 +29,21 @@ module.exports = {
 
         return promise;
     },
+    obtenerUsuarios : async (db, criterio) => {
+        promise = new Promise((resolve, reject) => {
+            var collection = db.collection('usuarios');
+            collection.find(criterio).toArray( (err, result) => {
+                if (err) {
+                    resolve(null);
+                } else {
+                    // lista de anuncios
+                    resolve(result);
+                }
+                db.close();
+            });
+        });
+        return promise;
+    },
     insertarUsuario : async (db, usuario) => {
         promise = new Promise((resolve, reject) => {
             var collection = db.collection('usuarios');
