@@ -21,6 +21,43 @@ module.exports = { // Permite hacer futuros imports
         server.route([
             {
                 method: 'POST',
+                path: '/registro',
+                handler: async (req, h) => {
+                    // We should use a better secret key
+                    password = require('crypto').createHmac('sha256', 'secreto')
+                        .update(req.payload.password).digest('hex');
+
+                    usuario = {
+                        usuario: req.payload.usuario,
+                        password: password,
+                    }
+                    // await no continuar hasta acabar esto
+                    // Da valor a respuesta
+                    await repositorio.conexion()
+                        .then((db) => repositorio.insertarUsuario(db, usuario))
+                        .then((id) => {
+                            respuesta = "";
+                            if (id == null) {
+                                respuesta =  "Error al insertar"
+                            } else {
+                                respuesta = "Insertado id:  "+ id;
+
+                            }
+                        })
+                    return respuesta;
+                }
+            },
+            {
+                method: 'GET',
+                path: '/registro',
+                handler: async (req, h) => {
+                    return h.view('registro',
+                        { },
+                        { layout: 'base'});
+                }
+            },
+            {
+                method: 'POST',
                 path: '/publicar',
                 // Options of the handlers, we specify
                 options : {

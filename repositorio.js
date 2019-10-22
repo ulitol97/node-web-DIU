@@ -29,10 +29,26 @@ module.exports = {
 
         return promise;
     },
+    insertarUsuario : async (db, usuario) => {
+        promise = new Promise((resolve, reject) => {
+            var collection = db.collection('usuarios');
+            collection.insertOne(usuario, (err, result) => {
+                if (err) {
+                    resolve(null);
+                } else {
+                    // _id no es un string es un ObjectID
+                    resolve(result.ops[0]._id.toString());
+                }
+                db.close();
+            });
+        });
+
+        return promise;
+    },
     insertarAnuncio : async (db, anuncio) => {
         promise = new Promise((resolve, reject) => {
             var collection = db.collection('anuncios');
-            collection.insert(anuncio, (err, result) => {
+            collection.insertOne(anuncio, (err, result) => {
                 if (err) {
                     resolve(null);
                 } else {
