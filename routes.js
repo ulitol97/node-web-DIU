@@ -38,7 +38,7 @@ module.exports = { // Permite hacer futuros imports
                 path: '/publicar',
                 handler: async (req, h) => {
                     return h.view('publicar',
-                        { usuario: 'jordán'},
+                        { usuario: 'ragna'},
                         { layout: 'base'});
                 }
             },
