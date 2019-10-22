@@ -21,6 +21,83 @@ module.exports = { // Permite hacer futuros imports
         server.route([
             {
                 method: 'GET',
+                path: '/anuncio/{id}/eliminar',
+                handler: async (req, h) => {
+
+                    var criterio = { "_id" :
+                            require("mongodb").ObjectID(req.params.id) };
+
+                    await repositorio.conexion()
+                        .then((db) => repositorio.eliminarAnuncios(db, criterio))
+                        .then((resultado) => {
+                            console.log("Eliminado")
+                        })
+                    return h.redirect('/misanuncios?mensaje=Anuncio Eliminado&tipoMensaje=danger')
+                }
+            },
+            {
+                method: 'POST',
+                path: '/anuncio/{id}/modificar',
+                options : {
+                    auth: 'auth-registrado',
+                    payload: {
+                        output: 'stream'
+                    }
+                },
+                handler: async (req, h) => {
+                    // criterio de anucio a modificar
+                    var criterio = { "_id" : require("mongodb").ObjectID(req.params.id) };
+                    // nuevos valores para los atributos
+                    anuncio = {
+                        usuario: req.auth.credentials ,
+                        titulo: req.payload.titulo,
+                        descripcion: req.payload.descripcion,
+                        categoria: req.payload.categoria,
+                        precio: Number.parseFloat(req.payload.precio),
+                    }
+                    // await no continuar hasta acabar esto
+                    // Da valor a respuesta
+                    await repositorio.conexion()
+                        .then((db) => repositorio.modificarAnuncio(db,criterio,anuncio))
+                        .then((id) => {
+                            respuesta = "";
+                            if (id == null) {
+                                respuesta =  "Error al modificar"
+                            } else {
+                                respuesta = "Modificado ";
+                            }
+                        })
+
+                    // ¿nos han enviado foto nueva? Sobreescribir la vieja
+                    if ( req.payload.foto.filename != "") {
+                        binario = req.payload.foto._data;
+                        extension = req.payload.foto.hapi.filename.split('.')[1];
+                        await module.exports.utilSubirFichero(
+                            binario, req.params.id, extension);
+                    }
+                    return respuesta;
+                }
+            },
+            {
+                method: 'GET',
+                path: '/anuncio/{id}/modificar',
+                handler: async (req, h) => {
+                    // Transform the add ID string to a mongo ObjectID
+                    var criterio = { "_id" : require("mongodb").ObjectID(req.params.id)};
+                    // Get the ad with the desired ID
+                    await repositorio.conexion()
+                        .then((db) => repositorio.obtenerAnuncios(db, criterio))
+                        .then((anuncios) => {
+                            // ¿Solo una coincidencia por _id?
+                            anuncio = anuncios[0];
+                        })
+                    return h.view('modificar',
+                        { anuncio: anuncio},
+                        { layout: 'base'} );
+                }
+            },
+            {
+                method: 'GET',
                 path: '/misanuncios',
                 options: {
                     auth: 'auth-registrado'

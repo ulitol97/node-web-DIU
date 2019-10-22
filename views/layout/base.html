@@ -18,6 +18,30 @@
     UIkit.notification({message: '{{ mensaje }}', status: 'success'})
 </script>
 {{/if}}
+<!-- Process get param 'mensaje' as a notification -->
+<script>
+    var mensaje = getUrlParameter('mensaje');
+    var tipoMensaje = getUrlParameter('tipoMensaje');
+
+    if ( mensaje != ""){
+        if (tipoMensaje == "" ){
+            tipoMensaje = 'primary';
+        }
+        UIkit.notification({message: mensaje, status: tipoMensaje, pos: 'top-right'})
+    }
+
+    // Function to get url parameters
+    function getUrlParameter(name) {
+        // Trim argument
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+        var results = regex.exec(location.search);
+        // Test by regex if the url is in the URL
+        // If it is, return its value
+        return results === null ? '' :
+            decodeURIComponent(results[1].replace(/\+/g, ' '));
+    }
+</script>
 
 <!--HEADER-->
     <header class="uk-box-shadow-small">

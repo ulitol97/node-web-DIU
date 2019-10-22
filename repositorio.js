@@ -74,5 +74,35 @@ module.exports = {
             });
         });
         return promise;
-    }
+    },
+    modificarAnuncio : async (db, criterio, anuncio) => {
+        promise = new Promise((resolve, reject) => {
+            var collection = db.collection('anuncios');
+            collection.update(criterio, {$set: anuncio}, (err, result) => {
+                if (err) {
+                    resolve(null);
+                } else {
+                    // modificado
+                    resolve(result);
+                }
+                db.close();
+            });
+        });
+
+        return promise;
+    },
+    eliminarAnuncios : async (db, criterio) => {
+        promise = new Promise((resolve, reject) => {
+            var collection = db.collection('anuncios');
+            collection.remove(criterio, (err, result) => {
+                if (err) {
+                    resolve(null);
+                } else {
+                    resolve(result);
+                }
+                db.close();
+            });
+        });
+        return promise;
+    },
 }
