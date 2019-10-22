@@ -1,10 +1,41 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+<section class="uk-section">
+    <div class="uk-container">
+        <div class="uk-overflow-auto">
+            <table class="uk-table uk-table-hover uk-table-middle uk-table-divider">
+                <thead>
+                <tr>
+                    <th class="uk-table-expand">Titulo</th>
+                    <th class="uk-width-small">Precio</th>
+                    <th class="uk-width-small">Opciones</th>
+                </tr>
+                </thead>
+                <tbody>
+                {{#each anuncios}}
+                <tr>
+                    <td >{{ titulo }}</td>
+                    <td >{{ precio }}</td>
+                    <td>
+                        <a class="uk-link" href="/anuncio/{{_id}}/modificar">
+                            <span  uk-icon="pencil"></span>
+                            Modificar
+                        </a> <br>
+                        <a class="uk-link" href="/anuncio/{{_id}}/eliminar">
+                            <span  uk-icon="trash"></span>
+                            Eliminar
+                        </a>
+                    </td>
+                </tr>
+                {{/each}}
+                </tbody>
+            </table>
+        </div>
 
-</body>
-</html>
+        <ul class="uk-pagination uk-flex-center" uk-margin>
+            <li><a href="#"><span uk-pagination-previous></span></a></li>
+            <li><a class="uk-active" href="#">1</a></li>
+            <li><a href="#">2</a></li>
+            <li><a href="#">3</a></li>
+            <li><a href="#"><span uk-pagination-next></span></a></li>
+        </ul>
+    </div>
+</section>

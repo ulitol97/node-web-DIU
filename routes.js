@@ -36,7 +36,7 @@ module.exports = { // Permite hacer futuros imports
                             anunciosEjemplo = anuncios;
                         })
 
-                    return h.view('anuncios',
+                    return h.view('misanuncios',
                         { anuncios: anunciosEjemplo },
                         { layout: 'base'} );
                 }
