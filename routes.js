@@ -1,6 +1,19 @@
 module.exports = { // Permite hacer futuros imports
     // Hapi needs a name for the module
     name: 'MyRouter',
+    // file upload helper
+    utilSubirFichero : async (binario, nombre, extension) => {
+        return new Promise((resolve, reject) => {
+            nombre = nombre + "." + extension;
+            // We are using node's fs module (filesystem)
+            require('fs').writeFile('./public/uploads/'+nombre, binario, err => {
+                if (err) {
+                    resolve(false)
+                }
+                resolve(true)
+            })
+        })
+    },
     // Register function is run the moment hapi inserts the module
     register: async (server, options) => {
         // When registering the routes. create a pointer to the DB
@@ -9,6 +22,12 @@ module.exports = { // Permite hacer futuros imports
             {
                 method: 'POST',
                 path: '/publicar',
+                // Options of the handlers, we specify
+                options : {
+                    payload: {
+                        output: 'stream'
+                    }
+                },
                 handler: async (req, h) => {
                     // Parse form data
                     anuncio = {
@@ -28,8 +47,17 @@ module.exports = { // Permite hacer futuros imports
                                 respuesta =  "Error al insertar"
                             } else {
                                 respuesta = "Insertado id:  "+ id;
+                                idAnuncio = id;
                             }
                         })
+                    // Once inserted the ad...
+                    binario = req.payload.foto._data; // photo binary
+                    extension = req.payload.foto.hapi.filename.split('.')[1]; // photo extension
+                    // Upload the photo with the same name as the ad identifier.
+                    // module exports.funtion to call functions in the module itself
+                    await module.exports.utilSubirFichero(
+                        binario, idAnuncio, extension);
+
                     return respuesta;
                 }
             },

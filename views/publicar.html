@@ -2,7 +2,7 @@
 <section class="uk-section">
     <div class="uk-card uk-card-default uk-card-body
         uk-width-1-2@m uk-align-center">
-        <form method="post" action="/publicar">
+        <form method="post" action="/publicar" enctype="multipart/form-data">
             <fieldset class="uk-fieldset">
 
                 <legend class="uk-legend">Información </legend>
@@ -52,7 +52,7 @@
                 <div class="uk-margin">
                     <label class="uk-form-label">Foto</label>
                     <div uk-form-custom="target: true">
-                        <input type="file" name="foto" accept="image/*">
+                        <input type="file" name="foto" accept="image/png">
                         <input class="uk-input" type="text"
                                placeholder="Selecciona fichero">
                     </div>
