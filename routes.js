@@ -55,8 +55,10 @@ module.exports = { // Permite hacer futuros imports
                     extension = req.payload.foto.hapi.filename.split('.')[1]; // photo extension
                     // Upload the photo with the same name as the ad identifier.
                     // module exports.funtion to call functions in the module itself
-                    await module.exports.utilSubirFichero(
-                        binario, idAnuncio, extension);
+                    if (req.payload.foto){
+                        await module.exports.utilSubirFichero(
+                            binario, idAnuncio, extension);
+                    }
 
                     return respuesta;
                 }
@@ -83,16 +85,35 @@ module.exports = { // Permite hacer futuros imports
                 path: '/anuncios',
                 handler: async (req, h) => {
                     // Hardcoded array of advertisements
-                    anunciosEjemplo = [
-                        {titulo: "iphone", precio: 400},
-                        {titulo: "xBox", precio: 300},
-                        {titulo: "teclado", precio: 30},
-                    ]
-                    return h.view('anuncios',
-                        {
+                    var criterio = {};
+                    if (req.query.criterio != null ){
+                        criterio = { "titulo" : {$regex : ".*"+req.query.criterio.trim()+".*"}};
+                    }
+
+                    await repositorio.conexion()
+                        .then((db) => repositorio.obtenerAnuncios(db, criterio))
+                        .then((anuncios) => {
+                            anunciosEjemplo = anuncios;
+                        })
+                    // Recorte de longitud de titulos y descripciones
+                    anunciosEjemplo.forEach( (e) => {
+                        if (e.titulo.length > 25){
+                            e.titulo = e.titulo.substring(0, 25) + "...";
+                        }
+                        if (e.descripcion.length > 80) {
+                            e.descripcion = e.descripcion.substring(0, 80) + "...";;
+                        }
+                    });
+
+                    return h.view(
+                        'anuncios', // html principal
+                        { // data for the template
                             usuario: 'ragna',
                             anuncios: anunciosEjemplo
-                        });
+                        },
+                        { // which layout
+                            layout: 'base'
+                        } );
                 }
             },
             {

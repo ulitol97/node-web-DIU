@@ -13,6 +13,22 @@ module.exports = {
         });
         return promise;
     },
+    obtenerAnuncios : async (db, criterio) => {
+        promise = new Promise((resolve, reject) => {
+            var collection = db.collection('anuncios');
+            collection.find(criterio).toArray( (err, result) => {
+                if (err) {
+                    resolve(null);
+                } else {
+                    // lista de anuncios
+                    resolve(result);
+                }
+                db.close();
+            });
+        });
+
+        return promise;
+    },
     insertarAnuncio : async (db, anuncio) => {
         promise = new Promise((resolve, reject) => {
             var collection = db.collection('anuncios');
