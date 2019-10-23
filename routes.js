@@ -14,6 +14,7 @@ module.exports = { // Permite hacer futuros imports
             })
         })
     },
+
     // Register function is run the moment hapi inserts the module
     register: async (server, options) => {
         // When registering the routes. create a pointer to the DB
@@ -22,17 +23,31 @@ module.exports = { // Permite hacer futuros imports
             {
                 method: 'GET',
                 path: '/anuncio/{id}/eliminar',
+                options: {
+                    auth: 'auth-registrado'
+                },
                 handler: async (req, h) => {
-
-                    var criterio = { "_id" :
-                            require("mongodb").ObjectID(req.params.id) };
-
+                    // El anuncio a eliminar debe tener el ID indicado y ser del usuario que está en sesión
+                    var criterio = {
+                        "_id" : require("mongodb").ObjectID(req.params.id),
+                        "usuario": req.auth.credentials
+                    };
                     await repositorio.conexion()
                         .then((db) => repositorio.eliminarAnuncios(db, criterio))
                         .then((resultado) => {
-                            console.log("Eliminado")
+                            respuesta = false
+                            // Check that we deleted something
+                            if (resultado.result.n == 0) {
+                                respuesta =  false
+                            } else {
+                                respuesta = true;
+                            }
                         })
-                    return h.redirect('/misanuncios?mensaje=Anuncio Eliminado&tipoMensaje=danger')
+                    if (respuesta) {
+                        return h.redirect('/misanuncios?mensaje=Anuncio eliminado&tipoMensaje=success')
+                    } else {
+                        return h.redirect('/misanuncios?mensaje=Anuncio no eliminado&tipoMensaje=danger')
+                    }
                 }
             },
             {
@@ -45,8 +60,11 @@ module.exports = { // Permite hacer futuros imports
                     }
                 },
                 handler: async (req, h) => {
-                    // criterio de anucio a modificar
-                    var criterio = { "_id" : require("mongodb").ObjectID(req.params.id) };
+                    // criterio de anucio a modificar: que tenga elID que buscamos y que sea del usuario logueado!
+                    var criterio = {
+                        "_id" : require("mongodb").ObjectID(req.params.id),
+                        "usuario": req.auth.credentials
+                    };
                     // nuevos valores para los atributos
                     anuncio = {
                         usuario: req.auth.credentials ,
@@ -87,9 +105,15 @@ module.exports = { // Permite hacer futuros imports
             {
                 method: 'GET',
                 path: '/anuncio/{id}/modificar',
+                options: {
+                    auth: 'auth-registrado'
+                },
                 handler: async (req, h) => {
                     // Transform the add ID string to a mongo ObjectID
-                    var criterio = { "_id" : require("mongodb").ObjectID(req.params.id)};
+                    var criterio = {
+                        "_id" : require("mongodb").ObjectID(req.params.id),
+                        "usuario": req.auth.credentials
+                    };
                     // Get the ad with the desired ID
                     await repositorio.conexion()
                         .then((db) => repositorio.obtenerAnuncios(db, criterio))
@@ -98,7 +122,10 @@ module.exports = { // Permite hacer futuros imports
                             anuncio = anuncios[0];
                         })
                     return h.view('modificar',
-                        { anuncio: anuncio},
+                        {
+                            anuncio: anuncio,
+                            usuarioAutenticado: req.auth.credentials
+                        },
                         { layout: 'base'} );
                 }
             },
@@ -109,24 +136,54 @@ module.exports = { // Permite hacer futuros imports
                     auth: 'auth-registrado'
                 },
                 handler: async (req, h) => {
+                    // Pagination parameter with name "pg"
+                    var pg = parseInt(req.query.pg); // Es String !!!
+                    if ( req.query.pg == null){ // Puede no venir el param
+                        pg = 1;
+                    }
+
                     // The search criteria in mongodb relies on the credentials travelling with the cookie
                     // When we crate an add, we make the creator the user stored in the cookie
                     var criterio = { "usuario" : req.auth.credentials };
                     // cookieAuth
                     await repositorio.conexion()
-                        .then((db) => repositorio.obtenerAnuncios(db, criterio))
+                        .then((db) => repositorio.obtenerAnunciosPg(db, pg, criterio))
                         .then((anuncios) => {
                             anunciosEjemplo = anuncios;
+
+                            pgUltima = anunciosEjemplo.total/2;
+                            // La página 2.5 no existe
+                            // Si excede sumar 1 y quitar los decimales
+                            if (pgUltima % 2 > 0 ){
+                                pgUltima = Math.trunc(pgUltima);
+                                pgUltima = pgUltima+1;
+                            }
                         })
 
+                    var paginas = [];
+                    for( i = 1; i <= pgUltima; i++){
+                        if ( i == pg ){
+                            paginas.push({valor: i , clase : "uk-active" });
+                        } else {
+                            paginas.push({valor: i});
+                        }
+                    }
                     return h.view('misanuncios',
-                        { anuncios: anunciosEjemplo },
+                        {
+                            anuncios: anunciosEjemplo,
+                            paginas: paginas,
+                            valor: pg,
+                            usuarioAutenticado: req.auth.credentials
+                        },
                         { layout: 'base'} );
                 }
             },
             {
                 method: 'GET',
                 path: '/desconectarse',
+                options: {
+                    auth: 'auth-registrado'
+                },
                 handler: async (req, h) => {
                     req.cookieAuth.set({ usuario: "", secreto: "" });
                     return h.view('login',
@@ -282,7 +339,10 @@ module.exports = { // Permite hacer futuros imports
                 },
                 handler: async (req, h) => {
                     return h.view('publicar',
-                        { usuario: 'ragna'},
+                        {
+                            usuario: req.auth.credentials,
+                            usuarioAutenticado: req.auth.credentials
+                        },
                         { layout: 'base'});
                 }
             },
@@ -322,7 +382,8 @@ module.exports = { // Permite hacer futuros imports
                     return h.view(
                         'anuncios', // html principal
                         { // data for the template
-                            usuario: 'ragna',
+                            usuario: req.auth.credentials,
+                            usuarioAutenticado: req.auth.credentials,
                             anuncios: anunciosEjemplo
                         },
                         { // which layout
@@ -355,7 +416,10 @@ module.exports = { // Permite hacer futuros imports
                 handler: async (req, h) => {
                     // Query the request for parameters
                     return h.view('index',
-                        { usuario: 'ragna'},
+                        {
+                            usuario: req.auth.credentials,
+                            usuarioAutenticado: req.auth.credentials,
+                        },
                         { layout: 'base'});
                 }
             }

@@ -29,6 +29,26 @@ module.exports = {
 
         return promise;
     },
+    obtenerAnunciosPg : async (db, pg, criterio) => {
+        promise = new Promise((resolve, reject) => {
+            var collection = db.collection('anuncios');
+            collection.count( criterio, (err, count) => {
+                collection.find(criterio).skip( (pg-1)*2 ).limit( 2 )
+                    .toArray( (err, result) => {
+                        if (err) {
+                            resolve(null);
+                        } else {
+                            // Guardar el total de anuncios
+                            result.total = count;
+                            resolve(result);
+                        }
+                        db.close();
+                    });
+            })
+        });
+
+        return promise;
+    },
     obtenerUsuarios : async (db, criterio) => {
         promise = new Promise((resolve, reject) => {
             var collection = db.collection('usuarios');

@@ -67,6 +67,19 @@ const iniciarServer = async () => {
                 return promise;
             }
         });
+        // Handlebars no acepta operaciones aritméricas en las plantillas, pero le podemos añadir functiones de ayuda
+        // Ejemplo, sumar
+        var handlebars = require('handlebars');
+        handlebars.registerHelper("sumar", (a, b) => {
+            return a + b;
+        })
+        handlebars.registerHelper("restar", (a, b) => {
+            return a - b;
+        })
+        // Helper method to prevent showing the pagination page "0" when we are on page "1"
+        handlebars.registerHelper('ifGreaterThanOne', function(n, options) {
+            return (n > 1) ? options.fn(this) : options.inverse(this);
+        });
 
         await server.register(routes);
         // Configure hapi views

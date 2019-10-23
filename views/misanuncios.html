@@ -30,12 +30,21 @@
             </table>
         </div>
 
+        <!-- Pagination -->
         <ul class="uk-pagination uk-flex-center" uk-margin>
-            <li><a href="#"><span uk-pagination-previous></span></a></li>
-            <li><a class="uk-active" href="#">1</a></li>
-            <li><a href="#">2</a></li>
-            <li><a href="#">3</a></li>
-            <li><a href="#"><span uk-pagination-next></span></a></li>
+            {{#ifGreaterThanOne valor}}
+                <li>
+                    <a href="/misanuncios?pg={{ restar valor 1 }}">{{ restar valor 1 }}</a>
+                </li>
+            {{/ifGreaterThanOne}}
+            <li class="uk-active">
+                <a href="/misanuncios?pg={{ valor }}">{{ valor }}</a>
+            </li>
+            <li>
+                <a href="/misanuncios?pg={{ sumar valor 1 }}">{{ sumar valor 1 }}</a>
+            </li>
+
         </ul>
+
     </div>
 </section>

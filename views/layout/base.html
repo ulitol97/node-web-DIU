@@ -78,6 +78,19 @@
                             </span>Publicar anuncio
                         </a>
                     </div>
+                    <!--User authenticated, show his name  -->
+                    {{#if usuarioAutenticado}}
+                    <div class="uk-navbar-item">
+                        <div class="uk-button uk-button-default uk-visible@m">
+                            <span data-uk-icon="user"
+                                  class="uk-margin-small-right">
+                            </span>
+                            {{usuarioAutenticado}}
+                        </div>
+                    </div>
+                    {{/if}}
+                    <!--User not authenticated, show login  -->
+                    {{^usuarioAutenticado}}
                     <div class="uk-navbar-item">
                         <a href="/login"
                            class="uk-button uk-button-default uk-visible@m">
@@ -86,6 +99,8 @@
                             </span>Acceder
                         </a>
                     </div>
+                    {{/usuarioAutenticado}}
+
                     <!-- Menú de movil lo oculta en pantallas mayores de m-->
                     <div class="uk-navbar-item uk-hidden@m">
                         <a class="uk-navbar-toggle"
