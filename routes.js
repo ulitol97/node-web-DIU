@@ -60,11 +60,11 @@ module.exports = { // Permite hacer futuros imports
                     await repositorio.conexion()
                         .then((db) => repositorio.modificarAnuncio(db,criterio,anuncio))
                         .then((id) => {
-                            respuesta = "";
+                            respuesta = false;
                             if (id == null) {
-                                respuesta =  "Error al modificar"
+                                respuesta =  false
                             } else {
-                                respuesta = "Modificado ";
+                                respuesta = true;
                             }
                         })
 
@@ -75,7 +75,13 @@ module.exports = { // Permite hacer futuros imports
                         await module.exports.utilSubirFichero(
                             binario, req.params.id, extension);
                     }
-                    return respuesta;
+
+                    if (respuesta){
+                        return h.redirect('/misanuncios?mensaje=Anuncio modificado&tipoMensaje=success')
+                    }
+                    else {
+                        return h.redirect('/publicar?mensaje=No se pudo modificar el anuncio&tipoMensaje=danger')
+                    }
                 }
             },
             {
@@ -144,9 +150,9 @@ module.exports = { // Permite hacer futuros imports
                     await repositorio.conexion()
                         .then((db) => repositorio.obtenerUsuarios(db, usuarioABuscar))
                         .then((usuarios) => {
-                            respuesta = "";
+                            respuesta = false;
                             if (usuarios == null || usuarios.length == 0 ) {
-                                respuesta =  "No identificado"
+                                respuesta =  false
                             } else {
                                 // On correct authentication
                                 req.cookieAuth.set({
@@ -154,11 +160,16 @@ module.exports = { // Permite hacer futuros imports
                                     secreto : "secreto"
                                 });
 
-                                respuesta = "Identificado correctamente";
+                                respuesta = true
                             }
                         })
 
-                    return respuesta;
+                    if (respuesta){
+                        return h.redirect('/misanuncios?mensaje=Autenticado correctamente&tipoMensaje=success')
+                    }
+                    else {
+                        return h.redirect('/login?mensaje=No se pudo iniciar sesion&tipoMensaje=danger')
+                    }
                 }
             },
             {
@@ -187,15 +198,21 @@ module.exports = { // Permite hacer futuros imports
                     await repositorio.conexion()
                         .then((db) => repositorio.insertarUsuario(db, usuario))
                         .then((id) => {
-                            respuesta = "";
+                            respuesta = false;
                             if (id == null) {
-                                respuesta =  "Error al insertar"
+                                respuesta =  false
                             } else {
-                                respuesta = "Insertado id:  "+ id;
+                                respuesta = true;
 
                             }
                         })
-                    return respuesta;
+
+                    if (respuesta){
+                        return h.redirect('/login?mensaje=Usuario registrado&tipoMensaje=success')
+                    }
+                    else {
+                        return h.redirect('/registro?mensaje=No se pudo crear el usuario&tipoMensaje=danger')
+                    }
                 }
             },
             {
@@ -231,11 +248,11 @@ module.exports = { // Permite hacer futuros imports
                     await repositorio.conexion()
                         .then((db) => repositorio.insertarAnuncio(db, anuncio))
                         .then((id) => {
-                            respuesta = "";
+                            respuesta = false;
                             if (id == null) {
-                                respuesta =  "Error al insertar"
+                                respuesta =  false
                             } else {
-                                respuesta = "Insertado id:  "+ id;
+                                respuesta = true
                                 idAnuncio = id;
                             }
                         })
@@ -249,7 +266,12 @@ module.exports = { // Permite hacer futuros imports
                             binario, idAnuncio, extension);
                     }
 
-                    return respuesta;
+                    if (respuesta){
+                        return h.redirect('/misanuncios?mensaje=Anuncio publicado&tipoMensaje=success')
+                    }
+                    else {
+                        return h.redirect('/publicar?mensaje=No se pudo publicar el anuncio&tipoMensaje=danger')
+                    }
                 }
             },
             {
